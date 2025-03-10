@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+* {
+    padding: 0;
+    margin: 0;
+    font-family: 'Roboto';
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+}
+
+#app {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+
+    .left-menu {
+        background-color: rgb(75, 123, 255);
+        height: 100vh;
+        width: 250px;
+        padding: 19px 0;
+
+        h1 {
+            padding: 15px;
+            color: white;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+
+            li {
+                padding: 15px;
+                font-size: 17px;
+                font-weight: 400;
+                color: #fff;
+                transition: background 0.3s;
+
+                &:hover {
+                    background-color: rgb(101, 135, 230);
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+
+    .right-menu {
+        flex-grow: 1; // Правая часть занимает оставшееся пространство
+        padding: 20px;
+
+        .main-menu {
+            .shift {
+                h1 {
+                    font-size: 24px;
+                }
+                p {
+                    font-size: 18px;
+                }
+                button {
+                    padding: 10px 15px;
+                    border: none;
+                    background-color: rgb(75, 123, 255);
+                    color: white;
+                    cursor: pointer;
+                    transition: 0.3s;
+
+                    &:hover {
+                        background-color: rgb(101, 135, 230);
+                    }
+                }
+            }
+        }
+    }
+}

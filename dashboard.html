@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управления</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+    <div id="app">
+        <div class="left-menu">
+            <ul>
+                <h1>Название</h1>
+                <li>Главная</li>
+                <li>Все товары</li>
+                <li>Смены</li>
+                <li>Все продажи</li>
+                <li>Список покупателей</li>
+                <li v-if="user.admin === 2">Настройки</li>
+            </ul>
+        </div>
+        <div class="right-menu">
+            <div class="main-menu" v-if="page === 'main'">
+                <div class="shift">
+                    <h1>Текущая смена:</h1>
+                    <p>{{ checkShift() }}</p>
+                    <button>{{ shiftInfo ? "Закрыть" : "Открыть" }}</button>
+                </div>
+                <div class="sells">
+                    <h1>Продаж сегодня</h1>
+                    <p>{{ shiftInfo.sales }}</p>
+                </div>
+                <div class="profit">
+                    <h1>Прибыль за сегодня</h1>
+                    <p>{{ shiftInfo.generalReceipt }} ₽</p>
+                </div>
+                <div class="worker">
+                    <h1>Сотрудник</h1>
+                    <p>{{ settings.accounts.find(i => i.id === shiftInfo.employee).name }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: "#app",
+            data: {
+                page: "main",
+                settings: {
+                    "accounts": [
+                        {
+                            "id": 0,
+                            "login": "admin",
+                            "password": "admin",
+                            "name": "Администратор",
+                            "admin": 2
+                        },
+                        {
+                            "id": 1,
+                            "login": "admin1",
+                            "password": "admin1",
+                            "name": "Кассир 1",
+                            "admin": 0
+                        }
+                    ],
+                    "settings": [
+                        {
+                            "marketName": "CloudCore Сoffee"
+                        }
+                    ],
+                    "items": [
+                        {
+                            "id": 0,
+                            "name": "Товар 1",
+                            "price": 100
+                        },
+                        {
+                            "id": 1,
+                            "name": "Товар 2",
+                            "price": 200
+                        },
+                        {
+                            "id": 2,
+                            "name": "Товар 3",
+                            "price": 300
+                        }
+                    ],
+                    "shifts": [
+                        {
+                            "id": 0,
+                            "dateOpen": "1",
+                            "dateClose": "1",
+                            "employee": 1,
+                            "isOpen": false,
+                            "sales": 1,
+                            "generalReceipt": 100
+                        },
+                        {
+                            "id": 1,
+                            "dateOpen": "1",
+                            "dateClose": "1",
+                            "employee": 1,
+                            "isOpen": true,
+                            "sales": 1,
+                            "generalReceipt": 100
+                        },
+                    ],
+                    "sells": [
+                        {
+                            "id": 0,
+                            "shifId": 0,
+                            "price": 100,
+                            "date": "1",
+                            "employee": 1,
+                            "buyerId": 1
+                        }
+                    ],
+                    "buyers": [
+                        {
+                            "id": 0,
+                            "buys": 1,
+                            "name": "Виталий Пупков",
+                            "numberPhone": "+7 995 583-06-36",
+                            "bonuses": 100
+                        }
+                    ]
+                },
+                user: {
+                    "id": 0,
+                    "login": "admin",
+                    "password": "admin",
+                    "name": "Администратор",
+                    "admin": 2
+                },
+                shiftInfo: {}
+            },
+            methods: {
+                async loadSettings() {
+                    this.settings = await window.electronAPI.getSettings();
+                },
+                checkShift() {
+                    let shift = this.settings.shifts.find(i => i.isOpen === true)
+                    if (shift) {
+                        this.shiftInfo = shift
+                        return `Открыта с ${shift.dateOpen}`;
+                    } else {
+                        return "Закрыта"
+                    }
+                }
+            },
+            mounted() {
+                this.user = JSON.parse(sessionStorage.getItem("user")) || {};
+                this.loadSettings();
+            }
+        });
+    </script>
+</body>
+
+</html>

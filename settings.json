@@ -1,0 +1,79 @@
+{
+    "accounts": [
+        {
+            "id": 0,
+            "login": "admin",
+            "password": "admin",
+            "name": "Администратор",
+            "admin": 2
+        },
+        {
+            "id": 1,
+            "login": "admin1",
+            "password": "admin1",
+            "name": "Кассир 1",
+            "admin": 0
+        }
+    ],
+    "settings": [
+        {
+            "marketName": "CloudCore Сoffee"
+        }
+    ],
+    "items": [
+        {
+            "id": 0,
+            "name": "Товар 1",
+            "price": 100
+        },
+        {
+            "id": 1,
+            "name": "Товар 2",
+            "price": 200
+        },
+        {
+            "id": 2,
+            "name": "Товар 3",
+            "price": 300
+        }
+    ],
+    "shifts": [
+        {
+            "id": 0,
+            "dateOpen": "1",
+            "dateClose": "1",
+            "employee": 1,
+            "isOpen": false,
+            "sales": 1,
+            "generalReceipt": 100
+        },
+        {
+            "id": 1,
+            "dateOpen": "1",
+            "dateClose": "1",
+            "employee": 1,
+            "isOpen": true,
+            "sales": 1,
+            "generalReceipt": 100
+        }
+    ],
+    "sells": [
+        {
+            "id": 0,
+            "shifId": 0,
+            "price": 100,
+            "date": "1",
+            "employee": 1,
+            "buyerId": 1
+        }
+    ],
+    "buyers": [
+        {
+            "id": 0,
+            "buys": 1,
+            "name": "Виталий Пупков",
+            "numberPhone": "+7 995 583-06-36",
+            "bonuses": 100
+        }
+    ]
+}
