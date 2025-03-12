@@ -3,22 +3,20 @@
   padding: 0;
   margin: 0;
   font-family: "Roboto";
-  -webkit-box-sizing: border-box;
-          box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
 }
 
-html, body {
+html,
+body {
   height: 100%;
 }
 
 #app {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-      -ms-flex-direction: row;
-          flex-direction: row;
+  flex-direction: row;
   height: 100vh;
 }
 #app .left-menu {
@@ -40,7 +38,6 @@ html, body {
   font-size: 17px;
   font-weight: 400;
   color: #fff;
-  -webkit-transition: background 0.3s;
   transition: background 0.3s;
 }
 #app .left-menu ul li:hover {
@@ -48,9 +45,7 @@ html, body {
   cursor: pointer;
 }
 #app .right-menu {
-  -webkit-box-flex: 1;
-      -ms-flex-positive: 1;
-          flex-grow: 1;
+  flex-grow: 1;
   padding: 20px;
 }
 #app .right-menu .main-menu .shift h1 {
@@ -65,9 +60,31 @@ html, body {
   background-color: rgb(75, 123, 255);
   color: white;
   cursor: pointer;
-  -webkit-transition: 0.3s;
   transition: 0.3s;
 }
 #app .right-menu .main-menu .shift button:hover {
   background-color: rgb(101, 135, 230);
 }
+#app .right-menu .all_items div {
+  overflow: auto;
+  height: 87vh;
+  width: 116vh;
+}
+#app .right-menu .all_items div table {
+  border-spacing: 0;
+}
+#app .right-menu .all_items div table tr:nth-child(odd) {
+  background-color: #f0f0f0;
+}
+#app .right-menu .all_items div table tr:nth-child(even) {
+  background-color: #e0e0e0;
+}
+#app .right-menu .all_items div table tr td {
+  padding: 20px;
+  width: 275px;
+  margin: 0;
+}
+#app .right-menu .all_items div table tr td img {
+  cursor: pointer;
+  text-align: right;
+}/*# sourceMappingURL=main.css.map */

@@ -13,10 +13,10 @@
     <div id="app">
         <div class="left-menu">
             <ul>
-                <h1>Название</h1>
-                <li>Главная</li>
-                <li>Все товары</li>
-                <li>Смены</li>
+                <h1>{{ settings.settings[0].marketName }}</h1>
+                <li @click="page = 'main'">Главная</li>
+                <li @click="page = 'allItems'">Все товары</li>
+                <li @click="page = 'shifts'">Смены</li>
                 <li>Все продажи</li>
                 <li>Список покупателей</li>
                 <li v-if="user.admin === 2">Настройки</li>
@@ -42,122 +42,62 @@
                     <p>{{ settings.accounts.find(i => i.id === shiftInfo.employee).name }}</p>
                 </div>
             </div>
+            <div class="all_items" v-if="page === 'allItems'">
+                <input v-if="!isEditing" type="text" v-model="search.allItems" placeholder="Поиск">
+                <div v-if="!isEditing">
+                    <table>
+                        <tr>
+                            <td>Наименование</td>
+                            <td>Цена</td>
+                            <td></td>
+                        </tr>
+                        <tr v-for="(item, index) in settings['items']" :key="item.id"
+                            v-if="item.name.toLowerCase().includes(search.allItems.toLowerCase())">
+                            <td>{{ item.name }}</td>
+                            <td>{{ formatPrice(item.price) }} ₽</td>
+                            <td><img src="./assets/edit.svg" alt="Edit" @click="editItem(item)"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div v-if="isEditing" class="edit-form">
+                    <h3>Редактирование товара</h3>
+                    <label>Наименование:</label>
+                    <input type="text" v-model="editingItem.name">
+                    <label>Цена:</label>
+                    <input type="number" v-model="editingItem.price">
+                    <button @click="saveItem">Сохранить</button>
+                    <button @click="cancelEdit">Отменить</button>
+                </div>
+            </div>
+            <div class="shifts" v-if="page === 'shifts'">
+                <input v-if="!isEditing" type="text" v-model="search.allItems" placeholder="Поиск">
+                <div>
+                    <table>
+                        <tr>
+                            <td>Наименование</td>
+                            <td>Цена</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ formatPrice(item.price) }}₽</td>
+                            <td><img src="./assets/edit.svg" alt="Edit"></td>
+                        </tr>
+                    </table>
+                </div>
+                <!-- <div v-if="isEditing" class="edit-form">
+                    <h3>Редактирование товара</h3>
+                    <label>Наименование:</label>
+                    <input type="text" v-model="editingItem.name">
+                    <label>Цена:</label>
+                    <input type="number" v-model="editingItem.price">
+                    <button @click="saveItem">Сохранить</button>
+                    <button @click="cancelEdit">Отменить</button>
+                </div> -->
+            </div>
         </div>
-    </div>
 
-    <script>
-        new Vue({
-            el: "#app",
-            data: {
-                page: "main",
-                settings: {
-                    "accounts": [
-                        {
-                            "id": 0,
-                            "login": "admin",
-                            "password": "admin",
-                            "name": "Администратор",
-                            "admin": 2
-                        },
-                        {
-                            "id": 1,
-                            "login": "admin1",
-                            "password": "admin1",
-                            "name": "Кассир 1",
-                            "admin": 0
-                        }
-                    ],
-                    "settings": [
-                        {
-                            "marketName": "CloudCore Сoffee"
-                        }
-                    ],
-                    "items": [
-                        {
-                            "id": 0,
-                            "name": "Товар 1",
-                            "price": 100
-                        },
-                        {
-                            "id": 1,
-                            "name": "Товар 2",
-                            "price": 200
-                        },
-                        {
-                            "id": 2,
-                            "name": "Товар 3",
-                            "price": 300
-                        }
-                    ],
-                    "shifts": [
-                        {
-                            "id": 0,
-                            "dateOpen": "1",
-                            "dateClose": "1",
-                            "employee": 1,
-                            "isOpen": false,
-                            "sales": 1,
-                            "generalReceipt": 100
-                        },
-                        {
-                            "id": 1,
-                            "dateOpen": "1",
-                            "dateClose": "1",
-                            "employee": 1,
-                            "isOpen": true,
-                            "sales": 1,
-                            "generalReceipt": 100
-                        },
-                    ],
-                    "sells": [
-                        {
-                            "id": 0,
-                            "shifId": 0,
-                            "price": 100,
-                            "date": "1",
-                            "employee": 1,
-                            "buyerId": 1
-                        }
-                    ],
-                    "buyers": [
-                        {
-                            "id": 0,
-                            "buys": 1,
-                            "name": "Виталий Пупков",
-                            "numberPhone": "+7 995 583-06-36",
-                            "bonuses": 100
-                        }
-                    ]
-                },
-                user: {
-                    "id": 0,
-                    "login": "admin",
-                    "password": "admin",
-                    "name": "Администратор",
-                    "admin": 2
-                },
-                shiftInfo: {}
-            },
-            methods: {
-                async loadSettings() {
-                    this.settings = await window.electronAPI.getSettings();
-                },
-                checkShift() {
-                    let shift = this.settings.shifts.find(i => i.isOpen === true)
-                    if (shift) {
-                        this.shiftInfo = shift
-                        return `Открыта с ${shift.dateOpen}`;
-                    } else {
-                        return "Закрыта"
-                    }
-                }
-            },
-            mounted() {
-                this.user = JSON.parse(sessionStorage.getItem("user")) || {};
-                this.loadSettings();
-            }
-        });
-    </script>
+        <script src="./js/main.js"></script>
 </body>
 
 </html>
