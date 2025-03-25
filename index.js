@@ -27,26 +27,27 @@ app.on('window-all-closed', () => {
     }
 });
 
-// Читаем данные из settings.json
 function readSettings() {
     const settingsPath = path.join(__dirname, 'settings.json');
     return JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
 }
 
-// Авторизация пользователя
 ipcMain.handle('login', async (event, { username, password }) => {
-    const data = readSettings();
-    const user = data.accounts.find(acc => acc.login === username && acc.password === password);
+    try {
+        const data = readSettings();
+        const user = data.accounts.find(acc => acc.login === username && acc.password === password);
 
-    if (user) {
-        mainWindow.loadFile('dashboard.html'); // Загружаем главную страницу CRM
-        return { success: true, message: "Успешный вход", user };
-    } else {
-        return { success: false, message: "Неверный логин или пароль" };
+        if (user) {
+            mainWindow.loadFile('dashboard.html');
+            return { success: true, message: "Успешный вход", user };
+        } else {
+            return { success: false, message: "Неверный логин или пароль" };
+        }
+    } catch (e) {
+        return { success: false, message: "Ошибка при загрузке файла настроек" };
     }
 });
 
-// Передача всех настроек на фронтенд
 ipcMain.handle('get-settings', async () => {
     return readSettings();
 });
