@@ -17,7 +17,6 @@ function createWindow() {
     });
 
     mainWindow.loadFile('index.html');
-    mainWindow.setMenu(null);
 }
 
 app.whenReady().then(createWindow);

@@ -28,77 +28,37 @@ new Vue({
                 {
                     "id": 0,
                     "name": "Товар 1",
-                    "price": 100
+                    "price": 100,
+                    "count": 1,
+                    "barcode": "1234567890129",
                 },
                 {
                     "id": 1,
                     "name": "Товар 2",
-                    "price": 200
+                    "price": 100,
+                    "count": 1,
+                    "barcode": "1234015678929",
                 },
                 {
                     "id": 2,
                     "name": "Товар 3",
-                    "price": 300
+                    "price": 100,
+                    "count": 1,
+                    "barcode": "1678234590129",
                 },
                 {
-                    "id": 0,
-                    "name": "Товар 1",
-                    "price": 100
+                    "id": 3,
+                    "name": "Товар 4",
+                    "price": 100,
+                    "count": 1,
+                    "barcode": "1230129456789",
                 },
                 {
-                    "id": 1,
-                    "name": "Товар 2",
-                    "price": 200
-                },
-                {
-                    "id": 2,
-                    "name": "Товар 3",
-                    "price": 300
-                },
-                {
-                    "id": 0,
-                    "name": "Товар 1",
-                    "price": 100
-                },
-                {
-                    "id": 1,
-                    "name": "Товар 2",
-                    "price": 200
-                },
-                {
-                    "id": 2,
-                    "name": "Товар 3",
-                    "price": 300
-                },
-                {
-                    "id": 0,
-                    "name": "Товар 1",
-                    "price": 100
-                },
-                {
-                    "id": 1,
-                    "name": "Товар 2",
-                    "price": 200
-                },
-                {
-                    "id": 2,
-                    "name": "Товар 3",
-                    "price": 300
-                },
-                {
-                    "id": 0,
-                    "name": "Товар 1",
-                    "price": 100
-                },
-                {
-                    "id": 1,
-                    "name": "Товар 2",
-                    "price": 200
-                },
-                {
-                    "id": 2,
-                    "name": "Товар 3",
-                    "price": 300
+                    "id": 4,
+                    "name": "Товар 5",
+                    "price": 100,
+                    "count": 1,
+                    "barcode": "1234689507129",
                 },
             ],
             "shifts": [
@@ -121,14 +81,18 @@ new Vue({
                     "generalReceipt": 100
                 },
             ],
-            "sells": [
+            "receipts": [
                 {
                     "id": 0,
                     "shifId": 0,
-                    "price": 100,
+                    "total": 100,
                     "date": "1",
                     "employee": 1,
-                    "buyerId": 1
+                    "items": [0, 1, 2, 3, 4],
+                    "buyerId": 1,
+                    "discount": 0,
+                    "toPaid": 100,
+                    "payment": 0
                 }
             ],
             "buyers": [
@@ -153,7 +117,11 @@ new Vue({
             allItems: ''
         },
         isEditing: false,
-        editingItem: {}
+        editingItem: {},
+        dialog: {
+            page: '',
+            info: []
+        }
     },
     methods: {
         async loadSettings() {
@@ -186,8 +154,40 @@ new Vue({
             this.isEditing = false;
             this.editingItem = {};
         },
+        generateBarcodes() {
+            this.settings['items'].forEach(item => {
+                const el = document.querySelector("#barcode" + item.id);
+                if (el) {
+                    JsBarcode(el, item.barcode, {
+                        format: "CODE128",
+                        displayValue: true,
+                        height: 100
+                    });
+                }
+            });
+        },        
+        focus(element) {
+            setTimeout(() => {
+                document.getElementById(element).focus();
+            }, 300);
+        },
+        getItem(id) {
+            return this.settings['items'].find(i => i.id === id);
+        },
+        dialogWindow(page, info) {
+            this.dialog.page = page
+            this.dialog.info = info
+        }
     },
     mounted() {
+        setInterval(() => {
+            this.generateBarcodes();  
+        }, 100);
+        setInterval(() => {
+            if(this.page === 'searchAllItems') {
+                this.focus('searchAllItems')
+            }  
+        }, 100);
         this.user = JSON.parse(sessionStorage.getItem("user")) || {};
         this.loadSettings();
     }

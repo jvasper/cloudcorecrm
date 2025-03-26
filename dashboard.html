@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель управления</title>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
     <link rel="stylesheet" href="main.css">
 </head>
 
@@ -15,9 +16,9 @@
             <ul>
                 <h1>{{ settings.settings[0].marketName }}</h1>
                 <li @click="page = 'main'">Главная</li>
-                <li @click="page = 'allItems'">Все товары</li>
+                <li @click="page = 'allItems', focus('searchAllItems')">Все товары</li>
                 <li @click="page = 'shifts'">Смены</li>
-                <li>Все продажи</li>
+                <li @click="page = 'receipts'">Чеки</li>
                 <li>Список покупателей</li>
                 <li v-if="user.admin === 2">Настройки</li>
             </ul>
@@ -42,20 +43,27 @@
                     <p>{{ settings.accounts.find(i => i.id === shiftInfo.employee).name }}</p>
                 </div>
             </div>
-            <div class="all_items" v-if="page === 'allItems'">
-                <input v-if="!isEditing" type="text" v-model="search.allItems" placeholder="Поиск">
+            <div class="table" v-if="page === 'allItems'">
+                <input v-if="!isEditing" type="text" v-model="search.allItems" placeholder="Поиск" id="searchAllItems">
                 <div v-if="!isEditing">
                     <table>
                         <tr>
                             <td>Наименование</td>
                             <td>Цена</td>
-                            <td></td>
+                            <td>Количество</td>
+                            <td>Штрихкод</td>
+                            <td v-if="user.admin === 2"></td>
                         </tr>
                         <tr v-for="(item, index) in settings['items']" :key="item.id"
-                            v-if="item.name.toLowerCase().includes(search.allItems.toLowerCase())">
+                            v-if="!isNaN(search.allItems) && search.allItems != 13 && search.allItems ? item.barcode.toLowerCase().includes(search.allItems.toLowerCase()) : item.name.toLowerCase().includes(search.allItems.toLowerCase())">
                             <td>{{ item.name }}</td>
                             <td>{{ formatPrice(item.price) }} ₽</td>
-                            <td><img src="./assets/edit.svg" alt="Edit" @click="editItem(item)"></td>
+                            <td>{{ item.count }}</td>
+                            <td>
+                                <svg :id="'barcode' + item.id"></svg>
+                            </td>
+                            <td v-if="user.admin === 2"><img src="./assets/edit.svg" alt="Edit" @click="editItem(item)">
+                            </td>
                         </tr>
                     </table>
                 </div>
@@ -69,34 +77,80 @@
                     <button @click="cancelEdit">Отменить</button>
                 </div>
             </div>
-            <!-- <div class="shifts" v-if="page === 'shifts'">
-                <input v-if="!isEditing" type="text" v-model="search.allItems" placeholder="Поиск">
+            <div class="table" v-if="page === 'shifts'">
+                <!-- <input v-if="!isEditing" type="text" v-model="search.allItems" placeholder="Поиск"> -->
                 <div>
                     <table>
                         <tr>
-                            <td>Наименование</td>
-                            <td>Цена</td>
-                            <td></td>
+                            <td>Открытие смены</td>
+                            <td>Закрытие смены</td>
+                            <td>Сотрудник</td>
+                            <td>Продажи</td>
+                            <td>Общая прибыль</td>
                         </tr>
-                        <tr>
-                            <td>{{ item.name }}</td>
-                            <td>{{ formatPrice(item.price) }}₽</td>
-                            <td><img src="./assets/edit.svg" alt="Edit"></td>
+                        <tr v-for="(item, index) in settings['shifts']" :key="item.id">
+                            <td>{{ item.dateOpen }}</td>
+                            <td>{{ item.dateClose }}</td>
+                            <td>{{ item.employee }}</td>
+                            <td>{{ item.sales }}</td>
+                            <td>{{ formatPrice(item.generalReceipt) }} ₽</td>
                         </tr>
                     </table>
-                </div> -->
-                <!-- <div v-if="isEditing" class="edit-form">
-                    <h3>Редактирование товара</h3>
-                    <label>Наименование:</label>
-                    <input type="text" v-model="editingItem.name">
-                    <label>Цена:</label>
-                    <input type="number" v-model="editingItem.price">
-                    <button @click="saveItem">Сохранить</button>
-                    <button @click="cancelEdit">Отменить</button>
-                </div> -->
+                </div>
+            </div>
+            <div class="table" v-if="page === 'receipts'">
+                <!-- <input v-if="!isEditing" type="text" v-model="search.allItems" placeholder="Поиск"> -->
+                <div>
+                    <table>
+                        <tr>
+                            <td>Чек</td>
+                            <td>Смена</td>
+                            <td>Дата</td>
+                            <td>Сумма чека</td>
+                            <td>Сотрудник</td>
+                            <td>Товары в чеке</td>
+                            <td>Покупатель</td>
+                            <td>Скидка</td>
+                            <td>К оплате</td>
+                            <td>Способ оплаты</td>
+                        </tr>
+                        <tr v-for="(item, index) in settings['receipts']" :key="item.id">
+                            <td>{{ item.id }}</td>
+                            <td>{{ item.shifId }}</td>
+                            <td>{{ item.date }}</td>
+                            <td>{{ item.total }}</td>
+                            <td>{{ item.employee }}</td>
+                            <td><button @click="dialogWindow('itemsOnReceipts', item.items)">Посмотреть</button></td>
+                            <td>{{ item.buyerId }}</td>
+                            <td>{{ item.discount }}</td>
+                            <td>{{ item.toPaid }}</td>
+                            <td>{{ item.payment }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="dialog" v-if="dialog.page">
+                <div class="dialog_wrapper">
+                    <div class="dialog_block">
+                        <div class="table" v-if="page === 'receipts'">
+                            <div>
+                                <table>
+                                    <tr v-for="id in dialog.info" :key="id">
+                                        <template v-if="getItem(id)">
+                                            <td>{{ getItem(id).name }}</td>
+                                            <td>{{ getItem(id).price }}</td>
+                                            <td>
+                                                <svg :id="'barcode' + getItem(id).id"></svg>
+                                            </td>
+                                        </template>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
         <script src="./js/main.js"></script>
 </body>
 
