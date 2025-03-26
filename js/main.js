@@ -100,9 +100,26 @@ new Vue({
                     "id": 0,
                     "buys": 1,
                     "name": "Виталий Пупков",
-                    "numberPhone": "+7 995 583-06-36",
-                    "bonuses": 100
-                }
+                    "numberPhone": "79955830636",
+                    "bonuses": 100,
+                    "barcode": '4600000000000'
+                },
+                {
+                    "id": 1,
+                    "buys": 1,
+                    "name": "Виталий Пупков",
+                    "numberPhone": "79955830636",
+                    "bonuses": 100,
+                    "barcode": '4600000000001'
+                },
+                {
+                    "id": 2,
+                    "buys": 1,
+                    "name": "Виталий Пупков",
+                    "numberPhone": "79955830636",
+                    "bonuses": 100,
+                    "barcode": '4600000000002'
+                },
             ]
         },
         user: {
@@ -110,11 +127,13 @@ new Vue({
             "login": "admin",
             "password": "admin",
             "name": "Администратор",
-            admin: 2
+            "admin": 2
         },
         shiftInfo: {},
         search: {
-            allItems: ''
+            allItems: '',
+            buyersName: '',
+            buyersNumber: '',
         },
         isEditing: false,
         editingItem: {},
@@ -143,11 +162,19 @@ new Vue({
             this.isEditing = true;
             this.editingItem = { ...item };
         },
-        saveItem() {
-            const index = this.settings.items.findIndex(item => item.id === this.editingItem.id);
-            if (index !== -1) {
-                this.settings.items[index] = { ...this.editingItem };
-                this.cancelEdit();
+        saveItem(item) {
+            if(item === 'buyers') {
+                const index = this.settings.buyers.findIndex(item => item.id === this.editingItem.id);
+                if (index !== -1) {
+                    this.settings.buyers[index] = { ...this.editingItem };
+                    this.cancelEdit();
+                }
+            } else {
+                const index = this.settings.items.findIndex(item => item.id === this.editingItem.id);
+                if (index !== -1) {
+                    this.settings.items[index] = { ...this.editingItem };
+                    this.cancelEdit();
+                }
             }
         },
         cancelEdit() {
@@ -156,6 +183,16 @@ new Vue({
         },
         generateBarcodes() {
             this.settings['items'].forEach(item => {
+                const el = document.querySelector("#barcode" + item.id);
+                if (el) {
+                    JsBarcode(el, item.barcode, {
+                        format: "CODE128",
+                        displayValue: true,
+                        height: 100
+                    });
+                }
+            });
+            this.settings['buyers'].forEach(item => {
                 const el = document.querySelector("#barcode" + item.id);
                 if (el) {
                     JsBarcode(el, item.barcode, {
@@ -188,7 +225,7 @@ new Vue({
                 this.focus('searchAllItems')
             }  
         }, 100);
-        this.user = JSON.parse(sessionStorage.getItem("user")) || {};
+        // this.user = JSON.parse(sessionStorage.getItem("user")) || {};
         this.loadSettings();
-    }
+    },
 });

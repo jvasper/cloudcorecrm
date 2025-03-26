@@ -17,7 +17,7 @@
     ],
     "settings": [
         {
-            "marketName": "CloudCore Сoffee"
+            "marketName": "CloudCore"
         }
     ],
     "items": [
@@ -88,7 +88,24 @@
             "buys": 1,
             "name": "Виталий Пупков",
             "numberPhone": "+7 995 583-06-36",
-            "bonuses": 100
+            "bonuses": 100,
+            "barcode": "4600000000000"
+        },
+        {
+            "id": 1,
+            "buys": 1,
+            "name": "Виталий Пупков",
+            "numberPhone": "+7 995 583-06-36",
+            "bonuses": 100,
+            "barcode": "4600000000001"
+        },
+        {
+            "id": 2,
+            "buys": 1,
+            "name": "Виталий Пупков",
+            "numberPhone": "+7 995 583-06-36",
+            "bonuses": 100,
+            "barcode": "4600000000002"
         }
     ]
 }

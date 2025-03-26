@@ -19,7 +19,7 @@
                 <li @click="page = 'allItems', focus('searchAllItems')">Все товары</li>
                 <li @click="page = 'shifts'">Смены</li>
                 <li @click="page = 'receipts'">Чеки</li>
-                <li>Список покупателей</li>
+                <li @click="page = 'buyers'">Список покупателей</li>
                 <li v-if="user.admin === 2">Настройки</li>
             </ul>
         </div>
@@ -42,6 +42,23 @@
                     <h1>Сотрудник</h1>
                     <p>{{ settings.accounts.find(i => i.id === shiftInfo.employee).name }}</p>
                 </div>
+            </div>
+            <div class="registration">
+                <h1>Регистрация продаж</h1>
+                <table>
+                    <tr>
+                        <td>Наименование</td>
+                        <td>Цена</td>
+                        <td>Количество</td>
+                    </tr>
+                    <tr v-for="(item, index) in settings['items']" :key="item.id"
+                        v-if="!isNaN(search.allItems) && search.allItems != 13 && search.allItems ? item.barcode.toLowerCase().includes(search.allItems.toLowerCase()) : item.name.toLowerCase().includes(search.allItems.toLowerCase())">
+                        <td>{{ item.name }}</td>
+                        <td>{{ formatPrice(item.price) }} ₽</td>
+                        <td>{{ item.count }}</td>
+                        </td>
+                    </tr>
+                </table>
             </div>
             <div class="table" v-if="page === 'allItems'">
                 <input v-if="!isEditing" type="text" v-model="search.allItems" placeholder="Поиск" id="searchAllItems">
@@ -132,7 +149,8 @@
             <div class="dialog" v-if="dialog.page">
                 <div class="dialog_wrapper">
                     <div class="dialog_block">
-                        <div class="table" v-if="page === 'receipts'">
+                        <button @click="dialog.page = ''">Закрыть</button>
+                        <div class="table" id="table_dialog" v-if="page === 'receipts'">
                             <div>
                                 <table>
                                     <tr v-for="id in dialog.info" :key="id">
@@ -148,6 +166,47 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div class="table" v-if="page === 'buyers'">
+
+                <div v-if="!isEditing">
+                    <table>
+                        <tr>
+                            <td>Клиент</td>
+                            <td>Кол-во покупок</td>
+                            <td>ФИО</td>
+                            <td>Номер телефона</td>
+                            <td>Бонусов</td>
+                            <td>Штрихкод карты</td>
+                            <td v-if="user.admin === 2"></td>
+                        </tr>
+                        <tr v-for="(item, index) in settings['buyers']" :key="item.id"
+                            v-if="search.buyersNumber === '' ? item.name.toLowerCase().includes(search.buyersName.toLowerCase()) : item.name.toLowerCase().includes(search.buyersNumber.toLowerCase())">
+                            <td>{{ item.id }}</td>
+                            <td>{{ item.buys }}</td>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.numberPhone }}</td>
+                            <td>{{ item.bonuses }}</td>
+                            <td>
+                                <svg :id="'barcode' + item.id"></svg>
+                            </td>
+                            <td v-if="user.admin === 2"><img src="./assets/edit.svg" alt="Edit" @click="editItem(item)">
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div v-if="isEditing" class="edit-form">
+                    <h3>Редактирование товара</h3>
+                    <label>ФИО:</label>
+                    <input type="text" v-model="editingItem.name">
+                    <label>Номер телефона:</label>
+                    <input type="text" v-model="editingItem.numberPhone">
+                    <label>Штрихкод карты:</label>
+                    <input type="text" v-model="editingItem.barcode">
+                    <svg :id="'barcode' + editingItem.id"></svg>
+                    <button @click="saveItem('buyers')">Сохранить</button>
+                    <button @click="cancelEdit">Отменить</button>
                 </div>
             </div>
         </div>

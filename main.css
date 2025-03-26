@@ -76,6 +76,10 @@ body {
 #app .right-menu .main-menu .shift button:hover {
   background-color: rgb(101, 135, 230);
 }
+#app .right-menu #table_dialog div {
+  max-height: 74vh;
+  width: auto;
+}
 #app .right-menu .table div {
   overflow: auto;
   height: 87vh;
