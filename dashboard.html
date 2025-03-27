@@ -15,6 +15,7 @@
         <div class="left-menu">
             <ul>
                 <h1>{{ settings.settings[0].marketName }}</h1>
+                <h3> {{ settings.accounts.find(i => i.id === shiftInfo.employee)?.name || 'Не найдено' }} </h3>
                 <li @click="page = 'main'">Главная</li>
                 <li @click="page = 'allItems', focus('searchAllItems')">Все товары</li>
                 <li @click="page = 'shifts'">Смены</li>
@@ -42,23 +43,33 @@
                     <h1>Сотрудник</h1>
                     <p>{{ settings.accounts.find(i => i.id === shiftInfo.employee).name }}</p>
                 </div>
-            </div>
-            <div class="registration">
-                <h1>Регистрация продаж</h1>
-                <table>
-                    <tr>
-                        <td>Наименование</td>
-                        <td>Цена</td>
-                        <td>Количество</td>
-                    </tr>
-                    <tr v-for="(item, index) in settings['items']" :key="item.id"
-                        v-if="!isNaN(search.allItems) && search.allItems != 13 && search.allItems ? item.barcode.toLowerCase().includes(search.allItems.toLowerCase()) : item.name.toLowerCase().includes(search.allItems.toLowerCase())">
-                        <td>{{ item.name }}</td>
-                        <td>{{ formatPrice(item.price) }} ₽</td>
-                        <td>{{ item.count }}</td>
-                        </td>
-                    </tr>
-                </table>
+                <div class="registration">
+                    <h1>Регистрация продаж</h1>
+                    <input v-model="scannedText" ref="scannerInput" type="number"
+                        @input="searchByBarcodeAndInsert(scannedText)">
+                    <p><font color="#ff0000">{{ errorMsg }}</font></p>
+                    <table>
+                        <tr>
+                            <td>Наименование</td>
+                            <td>Цена</td>
+                            <td>Количество</td>
+                        </tr>
+                        <tr v-for="(item, index) in receipt" :key="item.id">
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.price }} ₽</td>
+                            <td>{{ item.count }}</td>
+                            <td><button @click="deleteFromReceipt(item.id)">Удалить</button></td>
+                            </td>
+                        </tr>
+                    </table>
+                    <input type="text" placeholder="Карта клиента" v-model="discountCardInput" @input="searchDiscount">
+                    <h3>Итого: {{ formatPrice(receiptTotal()) }} </h3>
+                    <h3>Скидка: {{ discount }} </h3>
+                    <h3>К оплате: {{ (receiptTotal() - discount / receiptTotal() * 100) }} </h3>
+                    <button @click="">Наличные</button>
+                    <button>Карта</button>
+                    <button @click="receiptCancel">Галя у нас отмена</button>
+                </div>
             </div>
             <div class="table" v-if="page === 'allItems'">
                 <input v-if="!isEditing" type="text" v-model="search.allItems" placeholder="Поиск" id="searchAllItems">
@@ -79,7 +90,9 @@
                             <td>
                                 <svg :id="'barcode' + item.id"></svg>
                             </td>
-                            <td v-if="user.admin === 2"><img src="./assets/edit.svg" alt="Edit" @click="editItem(item)">
+                            <td><img v-if="user.admin === 2" src="./assets/edit.svg" alt="Edit"
+                                    @click="editItem(item)"><button @click="addItemToReceiptFromId(item.id)">Добавить в
+                                    чек</button>
                             </td>
                         </tr>
                     </table>
@@ -95,7 +108,6 @@
                 </div>
             </div>
             <div class="table" v-if="page === 'shifts'">
-                <!-- <input v-if="!isEditing" type="text" v-model="search.allItems" placeholder="Поиск"> -->
                 <div>
                     <table>
                         <tr>
@@ -189,7 +201,7 @@
                             <td>{{ item.numberPhone }}</td>
                             <td>{{ item.bonuses }}</td>
                             <td>
-                                <svg :id="'barcode' + item.id"></svg>
+                                <svg :id="'discount' + item.id"></svg>
                             </td>
                             <td v-if="user.admin === 2"><img src="./assets/edit.svg" alt="Edit" @click="editItem(item)">
                             </td>
@@ -204,7 +216,7 @@
                     <input type="text" v-model="editingItem.numberPhone">
                     <label>Штрихкод карты:</label>
                     <input type="text" v-model="editingItem.barcode">
-                    <svg :id="'barcode' + editingItem.id"></svg>
+                    <svg :id="'discount' + editingItem.id"></svg>
                     <button @click="saveItem('buyers')">Сохранить</button>
                     <button @click="cancelEdit">Отменить</button>
                 </div>

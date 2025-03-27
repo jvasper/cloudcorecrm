@@ -29,7 +29,7 @@ new Vue({
                     "id": 0,
                     "name": "Товар 1",
                     "price": 100,
-                    "count": 1,
+                    "count": 3,
                     "barcode": "1234567890129",
                 },
                 {
@@ -42,7 +42,7 @@ new Vue({
                 {
                     "id": 2,
                     "name": "Товар 3",
-                    "price": 100,
+                    "price": 1000,
                     "count": 1,
                     "barcode": "1678234590129",
                 },
@@ -75,7 +75,7 @@ new Vue({
                     "id": 1,
                     "dateOpen": "1",
                     "dateClose": "1",
-                    "employee": 1,
+                    "employee": 0,
                     "isOpen": true,
                     "sales": 1,
                     "generalReceipt": 100
@@ -102,7 +102,8 @@ new Vue({
                     "name": "Виталий Пупков",
                     "numberPhone": "79955830636",
                     "bonuses": 100,
-                    "barcode": '4600000000000'
+                    "barcode": '4600000000000',
+                    "discount": 5
                 },
                 {
                     "id": 1,
@@ -110,7 +111,8 @@ new Vue({
                     "name": "Виталий Пупков",
                     "numberPhone": "79955830636",
                     "bonuses": 100,
-                    "barcode": '4600000000001'
+                    "barcode": '4600000000001',
+                    "discount": 5
                 },
                 {
                     "id": 2,
@@ -118,7 +120,8 @@ new Vue({
                     "name": "Виталий Пупков",
                     "numberPhone": "79955830636",
                     "bonuses": 100,
-                    "barcode": '4600000000002'
+                    "barcode": '4600000000002',
+                    "discount": 5
                 },
             ]
         },
@@ -140,7 +143,13 @@ new Vue({
         dialog: {
             page: '',
             info: []
-        }
+        },
+        receipt: [],
+        scannedText: '',
+        discountCardInput: '',
+        discount: 0,
+        buyerId: -1,
+        errorMsg: '',
     },
     methods: {
         async loadSettings() {
@@ -155,6 +164,76 @@ new Vue({
                 return "Закрыта"
             }
         },
+        receiptCancel() {
+            this.receipt = []
+            this.discount = 0
+            this.buyerId = -1
+        },
+        generatePrice(id) {
+            let itemReceipt = this.receipt.find(i => i.id === id)
+            let item = this.settings.items.find(i => i.id === itemReceipt.itemId)
+            if(itemReceipt.count > item.count) {
+                this.itemReceipt.count = item.count
+            } else {
+                itemReceipt.price = item.price * itemReceipt.count
+            }
+        },
+        receiptTotal() {
+            let total = 0
+            this.receipt.forEach(element => {
+                total = total + element.price
+            });
+            return total;
+        },
+        searchDiscount() {
+            let buyer = this.settings.buyers.find(i => i.barcode === this.discountCardInput)
+            if(buyer) {
+                this.discount = buyer.discount
+                this.buyerId = buyer.id
+            } else {
+                this.errorMsg = 'Покупатель не найден'
+            }
+            this.discountCardInput = ''
+        },
+        searchByBarcodeAndInsert(barcode) {
+            this.errorMsg = ''
+            if(this.scannedText === '' || this.scannedText.length != 13) return;
+            let item = this.settings.items.find(i => i.barcode === barcode)
+        
+            if(item) {
+                let findItemsReceipt = this.receipt.find(i => i.itemId === item.id)
+                if(findItemsReceipt) {
+                    if(findItemsReceipt.count + 1 > item.count) {
+                        this.errorMsg = `Остаток товара - ${item.count}`
+                    } else {
+                        findItemsReceipt.count = findItemsReceipt.count + 1
+                    }
+                } else {
+                    const newId = this.receipt.length > 0 ? Math.max(...this.receipt.map(i => i.id)) + 1 : 1;
+                    this.receipt.push(
+                        {
+                            id: newId,
+                            itemId: item.id,
+                            name: item.name,
+                            price: item.price,
+                            count: 1,
+                        }
+                    )
+                }
+            } else {
+                this.errorMsg = 'Товар не найден'
+            }
+            this.scannedText = ''
+        },
+        addItemToReceiptFromId(id) {
+            let item = this.settings["items"].find(i => i.id === id)
+            this.page = 'main'
+            this.scannedText = item.barcode
+            this.searchByBarcodeAndInsert(item.barcode)
+        },
+        deleteFromReceipt(id) {
+            this.receipt = this.receipt.filter(i => i.id !== id);
+        },        
         formatPrice(price) {
             return new Intl.NumberFormat('ru-RU').format(price);
         },
@@ -193,7 +272,7 @@ new Vue({
                 }
             });
             this.settings['buyers'].forEach(item => {
-                const el = document.querySelector("#barcode" + item.id);
+                const el = document.querySelector("#discount" + item.id);
                 if (el) {
                     JsBarcode(el, item.barcode, {
                         format: "CODE128",
@@ -214,9 +293,10 @@ new Vue({
         dialogWindow(page, info) {
             this.dialog.page = page
             this.dialog.info = info
-        }
+        },
     },
     mounted() {
+        this.$refs.scannerInput.focus()
         setInterval(() => {
             this.generateBarcodes();  
         }, 100);
