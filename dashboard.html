@@ -37,7 +37,7 @@
                 </div>
                 <div class="profit">
                     <h1>Прибыль за сегодня</h1>
-                    <p>{{ shiftInfo.generalReceipt }} ₽</p>
+                    <p>{{ formatPrice(shiftInfo.generalReceipt) }} ₽</p>
                 </div>
                 <div class="worker">
                     <h1>Сотрудник</h1>
@@ -47,7 +47,9 @@
                     <h1>Регистрация продаж</h1>
                     <input v-model="scannedText" ref="scannerInput" type="number"
                         @input="searchByBarcodeAndInsert(scannedText)">
-                    <p><font color="#ff0000">{{ errorMsg }}</font></p>
+                    <p>
+                        <font color="#ff0000">{{ errorMsg }}</font>
+                    </p>
                     <table>
                         <tr>
                             <td>Наименование</td>
@@ -63,12 +65,12 @@
                         </tr>
                     </table>
                     <input type="text" placeholder="Карта клиента" v-model="discountCardInput" @input="searchDiscount">
-                    <h3>Итого: {{ formatPrice(receiptTotal()) }} </h3>
+                    <h3>Итого: {{ receiptTotal().toFixed(2) }} </h3>
                     <h3>Скидка: {{ discount }} </h3>
-                    <h3>К оплате: {{ (receiptTotal() - discount / receiptTotal() * 100) }} </h3>
-                    <button @click="">Наличные</button>
-                    <button>Карта</button>
-                    <button @click="receiptCancel">Галя у нас отмена</button>
+                    <h3>К оплате: {{ discountTotal() }} </h3>
+                    <button @click="buy(0)">Наличные</button>
+                    <button @click="buy(1)">Карта</button>
+                    <button @click="receiptCancel">Отмена</button>
                 </div>
             </div>
             <div class="table" v-if="page === 'allItems'">
@@ -83,7 +85,7 @@
                             <td v-if="user.admin === 2"></td>
                         </tr>
                         <tr v-for="(item, index) in settings['items']" :key="item.id"
-                            v-if="!isNaN(search.allItems) && search.allItems != 13 && search.allItems ? item.barcode.toLowerCase().includes(search.allItems.toLowerCase()) : item.name.toLowerCase().includes(search.allItems.toLowerCase())">
+                            v-if="!isNaN(search.allItems) && search.allItems != 13 && search.allItems ? item.barcode.toLowerCase().includes(search.allItems.toLowerCase()) : item.name.toLowerCase().includes(search.allItems.toLowerCase()) && item.count > 0">
                             <td>{{ item.name }}</td>
                             <td>{{ formatPrice(item.price) }} ₽</td>
                             <td>{{ item.count }}</td>
@@ -166,11 +168,12 @@
                             <div>
                                 <table>
                                     <tr v-for="id in dialog.info" :key="id">
-                                        <template v-if="getItem(id)">
-                                            <td>{{ getItem(id).name }}</td>
-                                            <td>{{ getItem(id).price }}</td>
+                                        <template>
+                                            <td>{{ getItem(id.id).name }}</td>
+                                            <td>{{ getItem(id.id).price }}</td>
+                                            <td>{{ id.count }}</td>
                                             <td>
-                                                <svg :id="'barcode' + getItem(id).id"></svg>
+                                                <svg :id="'barcode' + getItem(id.id).id"></svg>
                                             </td>
                                         </template>
                                     </tr>
@@ -207,9 +210,10 @@
                             </td>
                         </tr>
                     </table>
+                    <button>Добавить</button>
                 </div>
                 <div v-if="isEditing" class="edit-form">
-                    <h3>Редактирование товара</h3>
+                    <h3>Добавление покупателя</h3>
                     <label>ФИО:</label>
                     <input type="text" v-model="editingItem.name">
                     <label>Номер телефона:</label>

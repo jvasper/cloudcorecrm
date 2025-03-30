@@ -23,32 +23,37 @@
     "items": [
         {
             "id": 0,
-            "name": "Товар 1",
+            "name": "Лирика",
             "price": 100,
+            "count": 3,
             "barcode": "1234567890129"
         },
         {
             "id": 1,
-            "name": "Товар 1",
+            "name": "Товар 2",
             "price": 100,
+            "count": 1,
             "barcode": "1234015678929"
         },
         {
             "id": 2,
-            "name": "Товар 1",
-            "price": 100,
+            "name": "Товар 3",
+            "price": 1000,
+            "count": 1,
             "barcode": "1678234590129"
         },
         {
             "id": 3,
-            "name": "Товар 1",
+            "name": "Товар 4",
             "price": 100,
+            "count": 1,
             "barcode": "1230129456789"
         },
         {
             "id": 4,
-            "name": "Товар 1",
+            "name": "Товар 5",
             "price": 100,
+            "count": 1,
             "barcode": "1234689507129"
         }
     ],
@@ -66,20 +71,24 @@
             "id": 1,
             "dateOpen": "1",
             "dateClose": "1",
-            "employee": 1,
+            "employee": 0,
             "isOpen": true,
             "sales": 1,
             "generalReceipt": 100
         }
     ],
-    "sells": [
+    "receipts": [
         {
             "id": 0,
             "shifId": 0,
-            "price": 100,
+            "total": 100,
             "date": "1",
             "employee": 1,
-            "buyerId": 1
+            "items": [0, 1, 2, 3, 4],
+            "buyerId": 1,
+            "discount": 0,
+            "toPaid": 100,
+            "payment": 0
         }
     ],
     "buyers": [
@@ -87,25 +96,31 @@
             "id": 0,
             "buys": 1,
             "name": "Виталий Пупков",
-            "numberPhone": "+7 995 583-06-36",
+            "numberPhone": "79955830636",
             "bonuses": 100,
-            "barcode": "4600000000000"
+            "barcode": "4600000000000",
+            "discount": 5,
+            "totalAmount": 0
         },
         {
             "id": 1,
             "buys": 1,
             "name": "Виталий Пупков",
-            "numberPhone": "+7 995 583-06-36",
+            "numberPhone": "79955830636",
             "bonuses": 100,
-            "barcode": "4600000000001"
+            "barcode": "4600000000001",
+            "discount": 5,
+            "totalAmount": 0
         },
         {
             "id": 2,
             "buys": 1,
             "name": "Виталий Пупков",
-            "numberPhone": "+7 995 583-06-36",
+            "numberPhone": "79955830636",
             "bonuses": 100,
-            "barcode": "4600000000002"
+            "barcode": "4600000000002",
+            "discount": 5,
+            "totalAmount": 0
         }
     ]
 }

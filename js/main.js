@@ -27,7 +27,7 @@ new Vue({
             "items": [
                 {
                     "id": 0,
-                    "name": "Товар 1",
+                    "name": "Лирика",
                     "price": 100,
                     "count": 3,
                     "barcode": "1234567890129",
@@ -88,7 +88,28 @@ new Vue({
                     "total": 100,
                     "date": "1",
                     "employee": 1,
-                    "items": [0, 1, 2, 3, 4],
+                    "items": [
+                        {
+                            id: 0,
+                            count: 1,
+                        },
+                        {
+                            id: 1,
+                            count: 1,
+                        },
+                        {
+                            id: 2,
+                            count: 1,
+                        },
+                        {
+                            id: 3,
+                            count: 1,
+                        },
+                        {
+                            id: 4,
+                            count: 1,
+                        },
+                    ],
                     "buyerId": 1,
                     "discount": 0,
                     "toPaid": 100,
@@ -103,7 +124,8 @@ new Vue({
                     "numberPhone": "79955830636",
                     "bonuses": 100,
                     "barcode": '4600000000000',
-                    "discount": 5
+                    "discount": 5,
+                    "totalAmount": 0
                 },
                 {
                     "id": 1,
@@ -112,7 +134,8 @@ new Vue({
                     "numberPhone": "79955830636",
                     "bonuses": 100,
                     "barcode": '4600000000001',
-                    "discount": 5
+                    "discount": 5,
+                    "totalAmount": 0
                 },
                 {
                     "id": 2,
@@ -121,7 +144,8 @@ new Vue({
                     "numberPhone": "79955830636",
                     "bonuses": 100,
                     "barcode": '4600000000002',
-                    "discount": 5
+                    "discount": 5,
+                    "totalAmount": 0
                 },
             ]
         },
@@ -150,6 +174,9 @@ new Vue({
         discount: 0,
         buyerId: -1,
         errorMsg: '',
+        change: {
+            input: 0,
+        } 
     },
     methods: {
         async loadSettings() {
@@ -172,7 +199,7 @@ new Vue({
         generatePrice(id) {
             let itemReceipt = this.receipt.find(i => i.id === id)
             let item = this.settings.items.find(i => i.id === itemReceipt.itemId)
-            if(itemReceipt.count > item.count) {
+            if (itemReceipt.count > item.count) {
                 this.itemReceipt.count = item.count
             } else {
                 itemReceipt.price = item.price * itemReceipt.count
@@ -187,7 +214,7 @@ new Vue({
         },
         searchDiscount() {
             let buyer = this.settings.buyers.find(i => i.barcode === this.discountCardInput)
-            if(buyer) {
+            if (buyer) {
                 this.discount = buyer.discount
                 this.buyerId = buyer.id
             } else {
@@ -197,13 +224,13 @@ new Vue({
         },
         searchByBarcodeAndInsert(barcode) {
             this.errorMsg = ''
-            if(this.scannedText === '' || this.scannedText.length != 13) return;
+            if (this.scannedText === '' || this.scannedText.length != 13) return;
             let item = this.settings.items.find(i => i.barcode === barcode)
-        
-            if(item) {
+
+            if (item) {
                 let findItemsReceipt = this.receipt.find(i => i.itemId === item.id)
-                if(findItemsReceipt) {
-                    if(findItemsReceipt.count + 1 > item.count) {
+                if (findItemsReceipt) {
+                    if (findItemsReceipt.count + 1 > item.count) {
                         this.errorMsg = `Остаток товара - ${item.count}`
                     } else {
                         findItemsReceipt.count = findItemsReceipt.count + 1
@@ -233,7 +260,7 @@ new Vue({
         },
         deleteFromReceipt(id) {
             this.receipt = this.receipt.filter(i => i.id !== id);
-        },        
+        },
         formatPrice(price) {
             return new Intl.NumberFormat('ru-RU').format(price);
         },
@@ -242,7 +269,7 @@ new Vue({
             this.editingItem = { ...item };
         },
         saveItem(item) {
-            if(item === 'buyers') {
+            if (item === 'buyers') {
                 const index = this.settings.buyers.findIndex(item => item.id === this.editingItem.id);
                 if (index !== -1) {
                     this.settings.buyers[index] = { ...this.editingItem };
@@ -281,7 +308,7 @@ new Vue({
                     });
                 }
             });
-        },        
+        },
         focus(element) {
             setTimeout(() => {
                 document.getElementById(element).focus();
@@ -294,16 +321,56 @@ new Vue({
             this.dialog.page = page
             this.dialog.info = info
         },
+        discountTotal() {
+            let total = this.receiptTotal() - (this.receiptTotal() * this.discount / 100);
+            return total.toFixed(2)
+        },
+        buy(payment) {
+            const currentDate = new Date();
+            const formattedDate = currentDate.toISOString().replace(/T/, ' ').replace(/\..+/, '').replace(/-/g, '-');
+            let items = []
+            this.receipt.forEach(element => {
+                items.push(element.itemId)
+
+                let item = this.settings['items'].find(i => i.id === element.itemId)
+                item.count = item.count - 1
+            });
+            this.settings['receipts'].push(
+                {
+                    "id": this.settings['receipts'].length > 0 ? Math.max(...this.settings['receipts'].map(i => i.id)) + 1 : 1,
+                    "shifId": this.shiftInfo.id,
+                    "total": this.receiptTotal(),
+                    "date": formattedDate,
+                    "employee": this.shiftInfo.employee,
+                    "items": items,
+                    "buyerId": this.buyerId,
+                    "discount": this.discount,
+                    "toPaid": this.discountTotal(),
+                    "payment": payment
+                }
+            )
+
+            let shift = this.settings["shifts"].find(i => i.isOpen === true)
+            shift.sales = shift.sales + 1
+            shift.generalReceipt = shift.generalReceipt + Number(this.discountTotal())
+            let buyer = this.settings["buyers"].find(i => i.id === this.buyerId)
+            if (buyer) {
+                buyer.buys = buyer.buys + 1
+                buyer.totalAmount = buyer.totalAmount + Number(this.discountTotal())
+            }
+            this.change.input = 0
+            this.receiptCancel()
+        }
     },
     mounted() {
         this.$refs.scannerInput.focus()
         setInterval(() => {
-            this.generateBarcodes();  
+            this.generateBarcodes();
         }, 100);
         setInterval(() => {
-            if(this.page === 'searchAllItems') {
+            if (this.page === 'searchAllItems') {
                 this.focus('searchAllItems')
-            }  
+            }
         }, 100);
         // this.user = JSON.parse(sessionStorage.getItem("user")) || {};
         this.loadSettings();
