@@ -185,7 +185,7 @@
             </div>
             <div class="table" v-if="page === 'buyers'">
 
-                <div v-if="!isEditing">
+                <div v-if="!addBuyer.show">
                     <table>
                         <tr>
                             <td>Клиент</td>
@@ -210,19 +210,19 @@
                             </td>
                         </tr>
                     </table>
-                    <button>Добавить</button>
+                    <button @click="addBuyer.show = !addBuyer.show">Добавить</button>
                 </div>
-                <div v-if="isEditing" class="edit-form">
+                <div v-if="addBuyer.show" class="edit-form">
                     <h3>Добавление покупателя</h3>
                     <label>ФИО:</label>
-                    <input type="text" v-model="editingItem.name">
+                    <input type="text" v-model="addBuyer.name">
                     <label>Номер телефона:</label>
-                    <input type="text" v-model="editingItem.numberPhone">
+                    <input type="text" v-model="addBuyer.numberPhone">
                     <label>Штрихкод карты:</label>
-                    <input type="text" v-model="editingItem.barcode">
-                    <svg :id="'discount' + editingItem.id"></svg>
-                    <button @click="saveItem('buyers')">Сохранить</button>
-                    <button @click="cancelEdit">Отменить</button>
+                    <input type="text" v-model="addBuyer.barcode">
+                    <button @click="generateBarcodeDiscount">Генерировать</button>
+                    <button @click="saveItem('buyersAdd')">Сохранить</button>
+                    <button @click="addBuyer.show = !addBuyer.show">Отменить</button>
                 </div>
             </div>
         </div>

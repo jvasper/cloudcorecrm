@@ -176,7 +176,13 @@ new Vue({
         errorMsg: '',
         change: {
             input: 0,
-        } 
+        },
+        addBuyer: {
+            show: false,
+            name: '',
+            numberPhone: '',
+            barcode: '',
+        }
     },
     methods: {
         async loadSettings() {
@@ -269,7 +275,22 @@ new Vue({
             this.editingItem = { ...item };
         },
         saveItem(item) {
-            if (item === 'buyers') {
+            if('buyersAdd') {
+                this.settings['buyers'].push(
+                    {
+                        "id": this.settings['buyers'].length,
+                        "buys": 0,
+                        "name": this.addBuyer.name,
+                        "numberPhone": this.addBuyer.numberPhone,
+                        "bonuses": 0,
+                        "barcode": this.addBuyer.barcode,
+                        "discount": 5,
+                        "totalAmount": 0
+                    },
+                )
+                this.addBuyer.show = false
+            }
+            else if (item === 'buyers') {
                 const index = this.settings.buyers.findIndex(item => item.id === this.editingItem.id);
                 if (index !== -1) {
                     this.settings.buyers[index] = { ...this.editingItem };
@@ -360,6 +381,13 @@ new Vue({
             }
             this.change.input = 0
             this.receiptCancel()
+        },
+        generateBarcodeDiscount() {
+            if (this.settings['buyers'].length > 9) {
+                this.addBuyer.barcode = `46000000000${this.settings['buyers'].length}`
+            } else {
+                this.addBuyer.barcode = `460000000000${this.settings['buyers'].length}`
+            }
         }
     },
     mounted() {

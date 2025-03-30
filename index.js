@@ -1,9 +1,15 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const mysql = require('mysql')
 
 let mainWindow;
-
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'u2849689_default',
+    password: 'Xpa6yfhDzGL9DI20',
+    database: 'u2849689_default'
+});
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1500,
@@ -28,8 +34,19 @@ app.on('window-all-closed', () => {
 });
 
 function readSettings() {
-    const settingsPath = path.join(__dirname, 'settings.json');
-    return JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+    return new Promise((resolve, reject) => {
+        let settings = [];
+        
+        db.query('SELECT * FROM accounts', [], function (e, r) {
+            if (e) {
+                reject('Error fetching settings: ' + e); // Reject promise if there's an error
+            } else {
+                settings.push(r);
+                resolve(settings); // Resolve the promise with the settings when the query is done
+                console.log(settings)
+            }
+        });
+    });
 }
 
 ipcMain.handle('login', async (event, { username, password }) => {
