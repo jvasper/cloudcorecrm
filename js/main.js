@@ -1,4 +1,4 @@
-new Vue({
+var app = new Vue({
     el: "#app",
     data: {
         page: "main",
@@ -186,13 +186,26 @@ new Vue({
     },
     methods: {
         async loadSettings() {
-            this.settings = await window.electronAPI.getSettings();
+            try {
+                this.settings = await window.electronAPI.getSettings();
+                this.user = await window.electronAPI.getUserData();
+                let shift = this.settings.shifts.find(i => i.isOpen)
+                if (shift) {
+                    this.shiftInfo = shift
+                    return `Открыта с ${shift.dateOpen}`;
+                } else {
+                    return "Закрыта"
+                }
+            } catch (error) {
+                console.error("Failed to load settings:", error);
+                this.errorMsg = "Ошибка при загрузке настроек";
+            }
         },
         checkShift() {
-            let shift = this.settings.shifts.find(i => i.isOpen === true)
+            let shift = this.settings.shifts.find(i => i.isOpen)
             if (shift) {
                 this.shiftInfo = shift
-                return `Открыта с ${shift.dateOpen}`;
+                return `Открыта с ${this.formattedData(shift.dateOpen)}`;
             } else {
                 return "Закрыта"
             }
@@ -259,7 +272,7 @@ new Vue({
             this.scannedText = ''
         },
         addItemToReceiptFromId(id) {
-            let item = this.settings["items"].find(i => i.id === id)
+            let item = this.settings.items.find(i => i.id === id)
             this.page = 'main'
             this.scannedText = item.barcode
             this.searchByBarcodeAndInsert(item.barcode)
@@ -275,20 +288,20 @@ new Vue({
             this.editingItem = { ...item };
         },
         saveItem(item) {
-            if('buyersAdd') {
-                this.settings['buyers'].push(
-                    {
-                        "id": this.settings['buyers'].length,
-                        "buys": 0,
-                        "name": this.addBuyer.name,
-                        "numberPhone": this.addBuyer.numberPhone,
-                        "bonuses": 0,
-                        "barcode": this.addBuyer.barcode,
-                        "discount": 5,
-                        "totalAmount": 0
-                    },
-                )
+            if (item === 'buyersAdd') {
+                let data = {
+                    "id": this.settings.buyers.length + 1,
+                    "buys": 0,
+                    "name": this.addBuyer.name,
+                    "numberPhone": this.addBuyer.numberPhone,
+                    "bonuses": 0,
+                    "barcode": this.addBuyer.barcode,
+                    "discount": 5,
+                    "totalAmount": 0
+                }
+                this.settings.buyers.push(data)
                 this.addBuyer.show = false
+                window.electronAPI.addBuyer(data);
             }
             else if (item === 'buyers') {
                 const index = this.settings.buyers.findIndex(item => item.id === this.editingItem.id);
@@ -296,10 +309,11 @@ new Vue({
                     this.settings.buyers[index] = { ...this.editingItem };
                     this.cancelEdit();
                 }
-            } else {
+            } else if (item === 'allItems') {
                 const index = this.settings.items.findIndex(item => item.id === this.editingItem.id);
                 if (index !== -1) {
                     this.settings.items[index] = { ...this.editingItem };
+                    window.electronAPI.saveAllItems(this.editingItem);
                     this.cancelEdit();
                 }
             }
@@ -309,7 +323,7 @@ new Vue({
             this.editingItem = {};
         },
         generateBarcodes() {
-            this.settings['items'].forEach(item => {
+            this.settings.items.forEach(item => {
                 const el = document.querySelector("#barcode" + item.id);
                 if (el) {
                     JsBarcode(el, item.barcode, {
@@ -319,7 +333,7 @@ new Vue({
                     });
                 }
             });
-            this.settings['buyers'].forEach(item => {
+            this.settings.buyers.forEach(item => {
                 const el = document.querySelector("#discount" + item.id);
                 if (el) {
                     JsBarcode(el, item.barcode, {
@@ -336,29 +350,39 @@ new Vue({
             }, 300);
         },
         getItem(id) {
-            return this.settings['items'].find(i => i.id === id);
+            return this.settings.items.find(i => i.id === id);
         },
-        dialogWindow(page, info) {
+        async dialogWindow(page, id) {
             this.dialog.page = page
-            this.dialog.info = info
+            this.dialog.info = await window.electronAPI.getDialogInfo(id);
         },
         discountTotal() {
             let total = this.receiptTotal() - (this.receiptTotal() * this.discount / 100);
             return total.toFixed(2)
+        },
+        formattedData(dateString) {
+            const date = new Date(dateString);
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' };
+            return date.toLocaleString('ru-RU', options)
         },
         buy(payment) {
             const currentDate = new Date();
             const formattedDate = currentDate.toISOString().replace(/T/, ' ').replace(/\..+/, '').replace(/-/g, '-');
             let items = []
             this.receipt.forEach(element => {
-                items.push(element.itemId)
+                items.push(
+                    {
+                        id: element.itemId,
+                        count: element.count
+                    }
+                )
 
-                let item = this.settings['items'].find(i => i.id === element.itemId)
-                item.count = item.count - 1
+                let item = this.settings.items.find(i => i.id === element.itemId)
+                item.count = item.count - element.count
             });
-            this.settings['receipts'].push(
+            this.settings.receipts.push(
                 {
-                    "id": this.settings['receipts'].length > 0 ? Math.max(...this.settings['receipts'].map(i => i.id)) + 1 : 1,
+                    "id": this.settings.receipts.length > 0 ? Math.max(...this.settings.receipts.map(i => i.id)) + 1 : 1,
                     "shifId": this.shiftInfo.id,
                     "total": this.receiptTotal(),
                     "date": formattedDate,
@@ -370,23 +394,35 @@ new Vue({
                     "payment": payment
                 }
             )
-
-            let shift = this.settings["shifts"].find(i => i.isOpen === true)
+            let receiptData = {
+                "shifId": this.shiftInfo.id,
+                "total": this.receiptTotal(),
+                "date": currentDate,
+                "employee": this.shiftInfo.employee,
+                "items": items,
+                "buyerId": this.buyerId,
+                "discount": this.discount,
+                "toPaid": this.discountTotal(),
+                "payment": payment
+            }
+            let shift = this.settings.shifts.find(i => i.isOpen)
             shift.sales = shift.sales + 1
             shift.generalReceipt = shift.generalReceipt + Number(this.discountTotal())
-            let buyer = this.settings["buyers"].find(i => i.id === this.buyerId)
+            let buyer = this.settings.buyers.find(i => i.id === this.buyerId)
             if (buyer) {
                 buyer.buys = buyer.buys + 1
                 buyer.totalAmount = buyer.totalAmount + Number(this.discountTotal())
             }
             this.change.input = 0
             this.receiptCancel()
+            window.electronAPI.regBuy(receiptData);
         },
         generateBarcodeDiscount() {
-            if (this.settings['buyers'].length > 9) {
-                this.addBuyer.barcode = `46000000000${this.settings['buyers'].length}`
+            let newId = this.settings.buyers.length + 1
+            if (newId > 9) {
+                this.addBuyer.barcode = `46000000000${newId}`
             } else {
-                this.addBuyer.barcode = `460000000000${this.settings['buyers'].length}`
+                this.addBuyer.barcode = `460000000000${newId}`
             }
         }
     },

@@ -3,11 +3,9 @@
   padding: 0;
   margin: 0;
   font-family: "Roboto";
-  -webkit-box-sizing: border-box;
-          box-sizing: border-box;
+  box-sizing: border-box;
   -webkit-user-select: none;
      -moz-user-select: none;
-      -ms-user-select: none;
           user-select: none;
 }
 
@@ -17,13 +15,8 @@ body {
 }
 
 #app {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-      -ms-flex-direction: row;
-          flex-direction: row;
+  flex-direction: row;
   height: 100vh;
 }
 #app .left-menu {
@@ -45,7 +38,6 @@ body {
   font-size: 17px;
   font-weight: 400;
   color: #fff;
-  -webkit-transition: background 0.3s;
   transition: background 0.3s;
 }
 #app .left-menu ul li:hover {
@@ -53,27 +45,41 @@ body {
   cursor: pointer;
 }
 #app .right-menu {
-  -webkit-box-flex: 1;
-      -ms-flex-positive: 1;
-          flex-grow: 1;
+  flex-grow: 1;
   padding: 20px;
 }
-#app .right-menu .main-menu .shift h1 {
+#app .right-menu .main-menu .wrap {
+  display: flex;
+  flex-direction: row;
+}
+#app .right-menu .main-menu .wrap .shift {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  align-items: center;
+  border: 1px solid #000;
+  padding: 15px;
+  margin: 5px;
+  border-radius: 19px;
+}
+#app .right-menu .main-menu .wrap .shift h1 {
   font-size: 24px;
 }
-#app .right-menu .main-menu .shift p {
-  font-size: 18px;
+#app .right-menu .main-menu .wrap .shift p {
+  font-size: 25px;
+  margin-top: 5px;
 }
-#app .right-menu .main-menu .shift button {
+#app .right-menu .main-menu .wrap .shift button {
   padding: 10px 15px;
   border: none;
   background-color: rgb(75, 123, 255);
   color: white;
   cursor: pointer;
-  -webkit-transition: 0.3s;
   transition: 0.3s;
+  border-radius: 15px;
+  margin-top: 5px;
 }
-#app .right-menu .main-menu .shift button:hover {
+#app .right-menu .main-menu .wrap .shift button:hover {
   background-color: rgb(101, 135, 230);
 }
 #app .right-menu #table_dialog div {
@@ -83,7 +89,7 @@ body {
 #app .right-menu .table div {
   overflow: auto;
   height: 87vh;
-  width: 116vh;
+  width: 150vh;
 }
 #app .right-menu .table div table {
   border-spacing: 0;
@@ -103,6 +109,19 @@ body {
   cursor: pointer;
   text-align: right;
 }
+#app .right-menu .table div table tr td button {
+  padding: 10px 15px;
+  border: none;
+  background-color: rgb(75, 123, 255);
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+  border-radius: 15px;
+  margin-top: 5px;
+}
+#app .right-menu .table div table tr td button:hover {
+  background-color: rgb(101, 135, 230);
+}
 #app .right-menu .dialog {
   background-color: rgba(0, 0, 0, 0.3960784314);
   position: absolute;
@@ -112,17 +131,11 @@ body {
   height: 100%;
 }
 #app .right-menu .dialog .dialog_wrapper {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-pack: center;
-      -ms-flex-pack: center;
-          justify-content: center;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
+  justify-content: center;
+  align-items: center;
   height: 100%;
 }
 #app .right-menu .dialog .dialog_wrapper .dialog_block {
   background-color: #fff;
-}
+}/*# sourceMappingURL=main.css.map */
