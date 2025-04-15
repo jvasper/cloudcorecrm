@@ -2,13 +2,13 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const mysql = require('mysql')
-
+const config = require('./settings.json')
 let mainWindow;
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'cloudecrm'
+    host: config.host,
+    user: config.user,
+    password: config.password,
+    database: config.database
 });
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -97,7 +97,7 @@ ipcMain.handle('get-settings', async () => {
         data.receipts.forEach(element => {
             element.items = JSON.parse(element.items)
         });
-        // console.log(data)
+        console.log(data)
         return data;
     } catch (error) {
         console.error("Ошибка при получении настроек:", error);

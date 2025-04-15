@@ -205,9 +205,14 @@ var app = new Vue({
             let shift = this.settings.shifts.find(i => i.isOpen)
             if (shift) {
                 this.shiftInfo = shift
-                return `Открыта с ${this.formattedData(shift.dateOpen)}`;
             } else {
-                return "Закрыта"
+            }
+        },
+        toogleShift(toogle) {
+            if(toogle === 'close') {
+                let shift = this.settings.shifts.find(i => i.isOpen)
+                shift.isOpen = false
+                this.shiftInfo = null
             }
         },
         receiptCancel() {
@@ -346,7 +351,7 @@ var app = new Vue({
         },
         focus(element) {
             setTimeout(() => {
-                document.getElementById(element).focus();
+                // document.getElementById(element).focus();
             }, 300);
         },
         getItem(id) {
@@ -438,5 +443,6 @@ var app = new Vue({
         }, 100);
         // this.user = JSON.parse(sessionStorage.getItem("user")) || {};
         this.loadSettings();
+        this.checkShift()
     },
 });

@@ -15,7 +15,7 @@
         <div class="left-menu">
             <ul>
                 <h1>{{ settings.settings[0].marketName }}</h1>
-                <h3> {{ settings.accounts.find(i => i.id === shiftInfo.employee)?.name || 'Не найдено' }} </h3>
+                <!-- <h3> {{ settings.accounts.find(i => i.id === shiftInfo.employee)?.name || 'Не найдено' }} </h3> -->
                 <li @click="page = 'main'">Главная</li>
                 <li @click="page = 'allItems', focus('searchAllItems')">Все товары</li>
                 <li @click="page = 'shifts'">Смены</li>
@@ -30,22 +30,24 @@
                     <div class="shift">
                         <h1>Текущая смена:</h1>
                         <p>{{ checkShift() }}</p>
-                        <button>{{ shiftInfo ? "Закрыть" : "Открыть" }}</button>
+                        <p>{{ shiftInfo ? 'Открыта с ' + shiftInfo.dateOpen : 'Закрыта' }}</p>
+
+                        <button @click="toogleShift(shiftInfo ? 'close' : 'open')">{{ shiftInfo ? "Закрыть" : "Открыть" }}</button>
                     </div>
-                    <div class="shift">
+                    <div class="shift" v-if="shiftInfo">
                         <h1>Продаж сегодня</h1>
                         <p>{{ shiftInfo.sales }}</p>
                     </div>
-                    <div class="shift">
+                    <div class="shift" v-if="shiftInfo">
                         <h1>Прибыль за сегодня</h1>
                         <p>{{ formatPrice(shiftInfo.generalReceipt) }} ₽</p>
                     </div>
-                    <div class="shift">
+                    <div class="shift" v-if="shiftInfo">
                         <h1>Сотрудник</h1>
                         <p>{{ settings.accounts.find(i => i.id === shiftInfo.employee).name }}</p>
                     </div>
                 </div>
-                <div class="registration">
+                <div v-if="shiftInfo" class="registration">
                     <h1>Регистрация продаж</h1>
                     <input v-model="scannedText" ref="scannerInput" type="number"
                         @input="searchByBarcodeAndInsert(scannedText)">
